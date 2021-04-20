@@ -1,53 +1,31 @@
 <template>
-  <div class="container pt-5">
-    <br /><br /><br />
-    <div class="card p-5">
-      <h4>Email Our Mailing List</h4>
-      <small class="pb-3"
-        >Sending bulk email to our mailing list contacts using Twilio
-        SendGrid</small
-      >
-      <form v-on:submit.prevent="send">
-        <div class="form-group">
-          <label>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Topic"
-              v-model="data.topic"
-            />
-          </label>
-        </div>
-        <div class="form-group">
-          <label>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Sender Email"
-              v-model="data.email"
-            />
-          </label>
-        </div>
-        <div class="form-group">
-          <label>
-            <textarea
-              class="form-control"
-              placeholder="Enter email body"
-              v-model="data.body"
-            ></textarea>
-          </label>
-        </div>
-        <button type="submit" class="btn btn-outline-success">
-          Send Emails
-        </button>
-      </form>
-      <div class="pt-3 danger">
-        {{ this.error }}
-      </div>
-    </div>
-  </div>
-</template>
+  <v-card class="mx-auto" max-width="344">
+    <v-card-text>
+      <v-form ref="form" v-model="valid">
+        <v-text-field
+          v-model="data.email"
+          :rules="[rules.required]"
+          label="Email"
+        ></v-text-field>
+        <span>{{this.error.email}}</span>
 
+        <v-text-field
+          v-model="data.topic"
+          :rules="[rules.required]"
+          label="Topic"
+        ></v-text-field>
+        <v-textarea
+          v-model="data.body"
+          :rules="[rules.required]"
+          label="Email Body"
+        ></v-textarea>
+        <v-btn :disabled="!valid" color="success" class="mr-4" @click="send">
+          SEND
+        </v-btn>
+      </v-form>
+    </v-card-text>
+  </v-card>
+</template>
 <script>
 import axios from "axios";
 export default {
@@ -55,23 +33,36 @@ export default {
     return {
       data: {},
       error: {},
+      valid: false,
+
+      rules: {
+        required: value => !!value || "Required.",
+        email: v => /.+@.+\..+/.test(v) || "E-mail must be valid" 
+        
+      }
     };
   },
-  mounted(){
-    console.log('component mounted')
+  mounted() {
+    console.log("component mounted");
   },
   methods: {
     send() {
-      console.log('sdsfdgfd');
-        axios.post("http://127.0.0.1:8000/api/send/email", this.data)
-        .then((res) => {
-          console.log(res);
+      console.log("sdsfdgfd");
+      axios
+        .post("http://127.0.0.1:8000/api/send/email/", this.data)
+        .then(res => {
+          console.log(res.data);
+          if (res.data.message == "Failed") {
+            this.error = res.data.errors;
+            console.log("Error message : ", this.error);
+          } else {
+            console.log("Result: ", res.data);
+          }
         })
-        .catch((error) => {
-          console.log(error);
-          alert(this.data.errors);
+        .catch(error => {
+          console.log("Error Message :", error);
         });
-    },
-  },
+    }
+  }
 };
 </script>
